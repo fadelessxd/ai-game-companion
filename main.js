@@ -7,27 +7,34 @@ const __dirname = path.dirname(__filename);
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 700,
-    frame: false,       // Убирает стандартную рамку окна и верхнюю панель
-    transparent: true,  // Делает фон прозрачным
+    width: 1200,
+    height: 800,
+    frame: true,
+    backgroundColor: '#0f172a', // Темный цвет фона (под цвет вашего приложения), убирает белый мигающий экран
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
-    }
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
   });
 
-  // Проверяем: если мы запустили собранный .exe, грузим index.html из папки dist.
-  // Если через npm run dev, то грузим с локального сервера.
-  if (app.isPackaged) {
-    mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
-  } else {
+  const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+  
+  if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
+  } else {
+    mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
   }
 }
 
 app.whenReady().then(() => {
   createWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
 });
 
 app.on('window-all-closed', () => {
